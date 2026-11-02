@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Linux (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [g++, clang++]
+    env:
+      CXX: ${{ matrix.compiler }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: >-
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_STANDARD=11
+          -DCMAKE_CXX_STANDARD_REQUIRED=ON
+      - name: Build
+        run: cmake --build build --parallel 2
+      - name: Run example
+        run: ./build/num_basic
+
+  windows:
+    name: Windows (MSVC)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: >-
+          cmake -S . -B build
+          -DCMAKE_CXX_STANDARD=11
+          -DCMAKE_CXX_STANDARD_REQUIRED=ON
+      - name: Build
+        run: cmake --build build --config Debug --parallel 2
+      - name: Run example
+        run: .\build\Debug\num_basic.exe
